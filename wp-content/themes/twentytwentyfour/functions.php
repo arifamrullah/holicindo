@@ -204,3 +204,54 @@ if ( ! function_exists( 'twentytwentyfour_pattern_categories' ) ) :
 endif;
 
 add_action( 'init', 'twentytwentyfour_pattern_categories' );
+
+/**
+ * Show CPT Showcases
+ */
+
+function show_showcases() {
+	$args = array(
+		'post_type' => 'showcase',
+		'posts_per_page' => -1,
+		'meta_query' => array(
+			array(
+				'key' => 'penetapan_klien',
+				'value' => get_current_user_id(),
+				'compare' => '='
+			)
+		)
+	);
+
+	$query = new WP_Query($args);
+	$output = '';
+
+	if ($query->have_posts()) {
+		while ($query->have_posts()) {
+			$query -> the_post();
+
+			$garansi = get_field('status_garansi');
+			$tanggal_garansi = DateTime::createFromFormat('d/m/Y', $garansi);
+			$hari_ini = new DateTime();
+
+			if ($tanggal_garansi < $hari_ini) {
+				$status = 'Kadaluwarsa';
+			} else {
+				$status = 'Aktif';
+			}
+
+			$output .= '<h3>' . get_the_title() . '</h3>';
+			$output .= '<img width="300px" src=' . get_the_post_thumbnail_url() . ' />';
+			$output .= get_the_content();
+			$output .= '<p>' . get_field('nomor_seri') . '</p>';
+			// $output .= '<p>' . get_field('penetapan_klien')['display_name'] . '</p>';
+			$output .= '<p>' . get_field('status_garansi') . ' (' . $status . ')' . '</p>';
+			$output .= '<p>' . get_field('spesifikasi_teknik') . '</p>';
+			$output .= '<a href=' . get_post_permalink() . '>Lihat Produk</a>';
+		}
+		wp_reset_postdata();
+	}
+
+	return $output;
+}
+
+add_shortcode('showcases_list', 'show_showcases');
