@@ -255,3 +255,32 @@ function show_showcases() {
 }
 
 add_shortcode('showcases_list', 'show_showcases');
+
+/**
+ * Filter showcases by current user
+ */
+
+add_action('template_redirect', function() {
+	if (is_singular('showcase')) {
+		$current_user_id = get_current_user_id();
+		$assigned_user = get_field('penetapan_klien');
+	
+		if ($assigned_user != $current_user_id) {
+			wp_die('Kamu tidak punya akses ke halaman ini');
+		}
+	}
+});
+
+function request_service_shortcode() {
+    if (!is_singular()) return '';
+
+    // Ambil serial number dari ACF
+    $serial = get_field('nomor_seri');
+    if (!$serial) $serial = 'N/A';
+
+    // Escape biar aman di JS
+    $serial_js = esc_js($serial);
+
+    return '<button onclick="alert(\'Nomor Seri: ' . $serial_js . '\')">Request Service</button>';
+}
+add_shortcode('request_service', 'request_service_shortcode');
